@@ -31,7 +31,7 @@ function test_correctness(actions, valid_sequences, pattern_to_test) {
     // tracks if the action was invoked by adding it to `sequence`.
     let args = permutation.map( (action) => () => {
       sequence.push(action);
-      action.outcome();
+      return action.outcome();
     })
 
     // Give it a spin!
