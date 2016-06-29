@@ -1,5 +1,5 @@
 
-import {action} from './harness';
+import {action, test_correctness} from '../../harness';
 
 // These are the actions the pattern may use, their names and their possible outcomes
 let begin = action('begin', FAIL, SUCCEED),
@@ -44,4 +44,17 @@ function RETURN_FALSE() {
   return false;
 }
 
-export default {actions, valid_sequences};
+function test(pattern) {
+  test_correctness(actions, valid_sequences, pattern)
+    .then((result) => {
+      if(result.passed) {
+        console.log("Testing: " + pattern.name + ".. OK!");
+      } else {
+        console.log("Testing: " + pattern.name + ".. FAIL!");
+        console.log("  " + result.description.replace(/(?:\r\n|\r|\n)/g, "\n  "));
+        console.log();
+      }
+    });
+}
+
+export default {actions, valid_sequences, test};

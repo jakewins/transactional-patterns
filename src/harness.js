@@ -1,3 +1,4 @@
+import Promise from 'promise';
 
 function action(name, ...outcomes) {
   return {
@@ -13,6 +14,7 @@ function action(name, ...outcomes) {
  * actions is one listed as valid.
  */
 function test_correctness(actions, valid_sequences, pattern_to_test) {
+  let outcome = Promise.resolve();
   let failures = [];
 
   // Given the various outcomes of each of our actions, generate every possible 
@@ -33,24 +35,43 @@ function test_correctness(actions, valid_sequences, pattern_to_test) {
     })
 
     // Give it a spin!
+    let result = null;
     try {
-      pattern_to_test.apply(null, args);
+      result = pattern_to_test.apply(null, args);
     } catch(e) {}
 
     // Validate the sequence
-    if(!is_valid_sequence(sequence, valid_sequences)) {
-      failures.push(
-        "Pattern failed validation\n" +
-        "  Scenario: " + describe_permutation(permutation) + "\n" +
-        "  Pattern did: " + sequence.map((s)=>s.name).join(", "));
-    }
+    outcome = outcome
+      .then(wait_for(result))
+      .then(() => {
+        if(!is_valid_sequence(sequence, valid_sequences)) {
+          failures.push(
+            "Pattern failed validation\n" +
+            "  Scenario: " + describe_permutation(permutation) + "\n" +
+            "  Pattern did: " + sequence.map((s)=>s.name).join(", "));
+        }
+      });
   });
 
-  if(failures.length > 0) {
-    return {passed:false, description:failures.join("\n")};
-  } else {
-    return {passed:true};
-  }
+  return outcome.then(() => {
+    if(failures.length > 0) {
+      return {passed:false, description:failures.join("\n")};
+    } else {
+      return {passed:true};
+    }
+  }).catch( (e) => {
+    console.log(e);
+    return e;
+  });
+}
+
+function wait_for(result) {
+  // If the pattern provided returned a promise, we need to wait for that
+  // promise to resolve or reject. We don't care which it is - but we don't 
+  // want it to fail our promise chain if it rejects, so we wrap it like this.
+  return new Promise((resolve) => {
+    Promise.resolve(result).then(resolve).catch(resolve);
+  });
 }
 
 function all_permutations( args, callback ) {
@@ -90,22 +111,29 @@ function sequence_fits_pattern(sequence, valid_sequence) {
       return false;
     }
 
-    if(valid_action.length == 1) {
-      // The valid sequence does not specify any constraints on
-      // which outcomes it is applicable to, meaning we accept any
-      // outcome.
+    if(!action_fits_pattern(action_taken, valid_action)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function action_fits_pattern(action_taken, valid_action) {
+  if(valid_action.length == 1) {
+    // The valid sequence does not specify any constraints on
+    // which outcomes it is applicable to, meaning we accept any
+    // outcome.
+    return true;
+  }
+
+  for(let outcome_idx=1; outcome_idx<valid_action.length; outcome_idx++) {
+    let valid_outcome = valid_action[outcome_idx];
+    if(valid_outcome === action_taken.outcome) {
       return true;
     }
-
-    for(let outcome_idx=1; outcome_idx<valid_action.length; outcome_idx++) {
-      let valid_outcome = valid_action[outcome_idx];
-      if(valid_outcome === action_taken.outcome) {
-        return true;
-      }
-    }
-
-    return false;
   }
+  return false;
 }
 
 function describe_permutation(permutation) {
