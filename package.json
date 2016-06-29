@@ -1,0 +1,8 @@
+{
+  "name": "transactional-promises",
+  "version": "1.0.0",
+  "description": "An exploration of patterns for working with transactions in javascript.",
+  "devDependencies": {
+    "babel-cli": "^6.0.0"
+  }
+}
