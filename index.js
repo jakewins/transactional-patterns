@@ -2,34 +2,7 @@
 import {test_correctness} from './src/harness';
 import {actions, valid_sequences} from './src/transaction_usecase';
 
-function naive_blocking(begin, commit, rollback, business_logic) {
-  begin();
-  try {
-    if( business_logic() ) {
-      commit();
-    } else {
-      rollback();
-    }
-  } catch( e ) {
-    rollback();
-  }
-}
-
-function classic_blocking(begin, commit, rollback, business_logic) {
-  let success = false;
-  begin();
-  try {
-    if(business_logic()) {
-      success = true;
-    }
-  } finally {
-    if(success) {
-      commit();
-    } else {
-      rollback();
-    }
-  }
-}
+import {naive_blocking, classic_blocking, neo_blocking} from './src/patterns/transaction_blocking';
 
 
 function test(pattern) {
@@ -44,4 +17,5 @@ function test(pattern) {
 }
 
 test(naive_blocking);
-test(classic_blocking)
+test(classic_blocking);
+test(neo_blocking);
