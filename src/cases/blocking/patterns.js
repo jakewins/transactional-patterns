@@ -1,5 +1,14 @@
 
-function naive_blocking(begin, commit, rollback, business_logic) {
+function blocking_naive(begin, commit, rollback, business_logic) {
+  begin();
+  if( business_logic() ) {
+    commit();
+  } else {
+    rollback();
+  }
+}
+
+function blocking_catch(begin, commit, rollback, business_logic) {
   begin();
   try {
     if( business_logic() ) {
@@ -12,7 +21,7 @@ function naive_blocking(begin, commit, rollback, business_logic) {
   }
 }
 
-function classic_blocking(begin, commit, rollback, business_logic) {
+function blocking_classic(begin, commit, rollback, business_logic) {
   let success = false;
   begin();
   try {
@@ -28,7 +37,7 @@ function classic_blocking(begin, commit, rollback, business_logic) {
   }
 }
 
-function neo_blocking(begin, commit, rollback, business_logic) {
+function blocking_neo(begin, commit, rollback, business_logic) {
   begin();
   let tx = new NeoTransaction(commit, rollback);
   try {
@@ -62,4 +71,4 @@ class NeoTransaction {
   }
 }
 
-export default {naive_blocking, classic_blocking, neo_blocking};
+export default {blocking_naive, blocking_catch, blocking_classic, blocking_neo};
