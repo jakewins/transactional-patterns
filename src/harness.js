@@ -48,7 +48,7 @@ function test_correctness(actions, valid_sequences, pattern_to_test) {
           failures.push(
             "Pattern failed validation\n" +
             "  Scenario: " + describe_permutation(permutation) + "\n" +
-            "  Pattern did: " + sequence.map((s)=>s.name).join(", "));
+            "  Sequence: " + sequence.map((s)=>s.name).join(", "));
         }
       });
   });
@@ -137,7 +137,7 @@ function action_fits_pattern(action_taken, valid_action) {
 }
 
 function describe_permutation(permutation) {
-  return permutation.map( (p) => p.name + " -> " + p.outcome.name).join(", ");
+  return permutation.map( (p) => p.name + " -> " + p.outcome.name).join("\n            ");
 }
 
 export default {test_correctness, action};
