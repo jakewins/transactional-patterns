@@ -46,6 +46,23 @@ function promise_closure(begin, commit, rollback, business_logic) {
       }
     });
   });
+
+  function transactionally(stuff) {
+    let success = false;
+    return begin()
+      .then(() => {
+        return stuff({
+          success: () => success = true
+        });
+      })
+      .finally(() => {
+        if(success) {
+          commit();
+        } else {
+          rollback();
+        }
+      })
+  }
 }
 
 class NeoTransaction {
@@ -69,23 +86,6 @@ class NeoTransaction {
       this._rollback();
     }
   }
-}
-
-function transactionally(stuff) {
-  let success = false;
-  return begin()
-    .then(() => {
-      return stuff({
-        success: () => success = true
-      });
-    })
-    .finally(() => {
-      if(success) {
-        commit();
-      } else {
-        rollback();
-      }
-    })
 }
 
 export default {promise_catch, promise_finally, promise_neo, promise_closure};
